@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 #
+# https://github.com/SteveKChiu/ios-localize
+#
 # Copyright 2015, Steve K. Chiu <steve.k.chiu@gmail.com>
 #
 # The MIT License (http://www.opensource.org/licenses/mit-license.php)
