@@ -1,7 +1,7 @@
 ios-localize
 ============
 
-`ios-localize.rb` is ruby script to help you to use Android resource on iOS, it does the following:
+`ios-strings.rb` is ruby script to help you to use Android resource on iOS, it does the following:
 
 + Convert Android `<string>`, `<string-array>`, `<plurals>` to iOS
 + Generate R.swift to mimic Android R.java
@@ -27,8 +27,23 @@ they are more or less having some shortcomings, mostly:
 I want a tool to do these all, and can do it in batch, so I can put it into build script
 if needed. Thus why I write this script by myself.
 
-Run the script
---------------
+Supported Android resource types
+--------------------------------
+
+The following Android resource types are supported by this tool:
+
+Android xml tag | iOS file
+----------------|-----------
+string          | Generate to Localizable.strings
+string-array    | Generate to LocalizableArray.strings
+plurals         | Generate to Localizable.stringsdict
+
+For every language, Android side may have multiple .xml files, all will be merged into
+single file on iOS. The iOS file will be put into proper language directory, such as Base.lproj,
+zh-Hant.lproj, etc...
+
+Import strings from Android
+---------------------------
 
 Take the following Android project for example:
 
@@ -58,7 +73,7 @@ And iOS project before running the tool:
 Then you can run the tool for ios_app:
 
 ````
-ruby ios-localize.rb --in=~/android_app/res --out=~/ios_app/res
+ruby ios-strings.rb --in=~/android_app/res --out=~/ios_app/res
 ````
 
 And the iOS project will look like
@@ -78,25 +93,10 @@ And the iOS project will look like
         +-- Localizable.stringsdict
 ````
 
-Resource types
---------------
+Type-safe access to strings
+---------------------------
 
-The following resource types are supported by this tool:
-
-Android xml tag | iOS file
-----------------|-----------
-string          | Generate to Localizable.strings
-string-array    | Generate to LocalizableArray.strings
-plurals         | Generate to Localizable.stringsdict
-
-For every language, Android side may have multiple .xml files, all will be merged into
-single file on iOS. The iOS file will be put into proper language directory, such as Base.lproj,
-zh-Hant.lproj, etc...
-
-R.swift
--------
-
-The tool also generate a `R.swift` that mimic Android R.java, it is type-safe and IDE friendly:
+The tools generate a `R.swift` that mimic Android `R.java`, the generated code is type-safe and IDE friendly:
 
 The generated R.swift looks like:
 ````swift
@@ -116,24 +116,49 @@ struct R {
 }
 ````
 
-Android xml tag | swift code              | swift type | Usage
-----------------|-------------------------|------------|-------
-string          | R.string.btn_ok         | R.string   | enum case, you can get the key string by .rawValue
-string          | R.string.btn_ok%        | String     | To get the localized string
-string-array    | R.array.menu_list       | R.array    | enum case, you can get the key string by .rawValue
-string-array    | R.array.menu_list%      | [String]   | To get the localized string array
-plurals         | R.plurals.item_count    | R.plurals  | enum case, you can get the key string by .rawValue
-plurals         | R.plurals.item_count[5] | String     | To get the localized string with quantity 5
+swift code              | swift type | Usage
+------------------------|------------|-------
+R.string.btn_ok         | R.string   | enum case, you can get the key string by .rawValue
+R.string.btn_ok%        | String     | To get the localized string
+R.array.menu_list       | R.array    | enum case, you can get the key string by .rawValue
+R.array.menu_list%      | [String]   | To get the localized string array
+R.plurals.item_count    | R.plurals  | enum case, you can get the key string by .rawValue
+R.plurals.item_count[5] | String     | To get the localized string with quantity 5
 
-The % and [] operator for R.swift are overloaded to provide localized value.
+The % and [] operator for R.swift are overloaded to provide access to the strings.
 
 Generate CSV report
 -------------------
 
-The `ios-localize.rb` can also export resources to one CSV file, for review or other purpose, please try:
+The `ios-strings.rb` can also export resources to one CSV file, for review or other purpose, please try:
 
 ````
-ruby ios-localize.rb --in=~/android_app/res --report=report.csv
+ruby ios-strings.rb --in=~/android_app/res --report=report.csv
 ````
 
+Type-safe access to assets
+--------------------------
 
+Another tool `ios-assets.rb` will generate `R+assets.swift` as extension to `R.swift`, that provides type-safe and IDE
+friendly access to the image assets. To run the tool:
+
+````
+ruby ios-assets.rb --res=~/ios_app/res
+````
+
+The generated R+assets.swift looks like:
+```` swift
+extension R {
+    enum image : String {
+        case icon_logo
+        ...
+    }
+}
+````
+
+swift code              | swift type | Usage
+------------------------|------------|-------
+R.image.icon_logo       | R.image    | enum case, you can get the key string by .rawValue
+R.image.icon_logo%      | UIImage    | To get the image from assets
+
+The % operator for R+assets.swift are overloaded to provide access to the images.

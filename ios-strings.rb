@@ -46,10 +46,12 @@ require 'optparse'
 
 ARGV << '--help' if ARGV.empty?
 
-options = {}
+options = {
+  :gen_r => true,
+}
 
 OptionParser.new do |opts|
-  opts.banner = "Usage: ioslocalize.rb options"
+  opts.banner = "Usage: ios-strings.rb options"
 
   opts.on("--in=DIRECTORY", "input directory for Andrord resources") do |v|
     options[:in] = v
@@ -63,7 +65,7 @@ OptionParser.new do |opts|
     options[:gen_base] = v
   end
 
-  opts.on("--[no-]gen-R", "Generate R.swift for resource access") do |v|
+  opts.on("--[no-]gen-R", "Whether to generate R.swift, default is true") do |v|
     options[:gen_r] = v
   end
 
