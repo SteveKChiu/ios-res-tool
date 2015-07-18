@@ -353,10 +353,10 @@ def output_r_swift(dest_path, strings_keys, arrays_keys, plurals_keys)
         f.write "        case #{key}\n"
       }
       f.write "    }\n\n"
-      f.write "    private static var arrays: NSDictionary {\n"
+      f.write "    private static var arrays: NSDictionary = {\n"
       f.write "        let path = NSBundle.mainBundle().pathForResource(\"LocalizableArray\", ofType: \"strings\")!\n"
       f.write "        return NSDictionary(contentsOfFile: path)!\n"
-      f.write "    }\n\n"
+      f.write "    }()\n\n"
     end
 
     if not plurals_keys.empty?
