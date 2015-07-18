@@ -4,6 +4,16 @@
 #
 # Copyright 2015, Steve K. Chiu <steve.k.chiu@gmail.com>
 #
+# What it does is to read Andrord resources and translate it into iOS resources:
+#
+# + string, string-array and plurals are supported
+# + values-zh-rTW (or values-zh-rHK) will be translated into zh-Hant.lproj
+# + values-zh-rCN will be translated into zh-Hans.lproj
+# + string format %s will be translated into %@
+# + string format %,d will be translated into %d
+# + type-safe and Xcode friendly R.swift
+# + CSV report
+#
 # The MIT License (http://www.opensource.org/licenses/mit-license.php)
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
@@ -24,22 +34,6 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 #
-# What it does is to read Andrord resources and translate it into iOS resources:
-#
-# + string, string-array and plurals are supported
-#
-# + values-zh-rTW (or values-zh-rHK) will be translated into zh-Hant.lproj
-#
-# + values-zh-rCN will be translated into zh-Hans.lproj
-#
-# + string format %s will be translated into %@
-#
-# + string format %,d will be translated into %d
-#
-# + type-safe and Xcode friendly R.swift
-#
-# + CSV report
-#
 
 require 'fileutils'
 require 'pathname'
@@ -53,13 +47,13 @@ options = {
 }
 
 OptionParser.new do |opts|
-  opts.banner = "Usage: ios-strings.rb options"
+  opts.banner = "Usage: ios-strings.rb --in=ANDROID_RES_DIR [--out=IOS_RES_DIR] [--report=CSV_FILE] [options]"
 
-  opts.on("--in=DIRECTORY", "input directory for Andrord resources") do |v|
+  opts.on("--in=ANDROID_RES_DIR", "input directory for Andrord resources") do |v|
     options[:in] = v
   end
 
-  opts.on("--out=DIRECTORY", "output directory for iOS resources") do |v|
+  opts.on("--out=IOS_RES_DIR", "output directory for iOS resources") do |v|
     options[:out] = v
   end
 
@@ -71,7 +65,7 @@ OptionParser.new do |opts|
     options[:gen_r] = v
   end
 
-  opts.on("--report=FILE", "Generate CSV report") do |v|
+  opts.on("--report=CSV_FILE", "Generate CSV report") do |v|
     options[:csv] = v
   end
 

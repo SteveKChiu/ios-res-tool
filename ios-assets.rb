@@ -4,6 +4,9 @@
 #
 # Copyright 2015, Steve K. Chiu <steve.k.chiu@gmail.com>
 #
+# What it does is to scan iOS resources and generate R+assets.swift for
+# .xcassets catalog
+#
 # The MIT License (http://www.opensource.org/licenses/mit-license.php)
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
@@ -24,9 +27,6 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 #
-# What it does is to scan iOS resources and generate R+assets.swift for
-# .xcassets catalog
-#
 
 require 'fileutils'
 require 'pathname'
@@ -37,9 +37,9 @@ ARGV << '--help' if ARGV.empty?
 options = {}
 
 OptionParser.new do |opts|
-  opts.banner = "Usage: ios-assets.rb options"
+  opts.banner = "Usage: ios-assets.rb --res=IOS_RES_DIR"
 
-  opts.on("--res=DIRECTORY", "directory for iOS resources") do |v|
+  opts.on("--res=IOS_RES_DIR", "directory for iOS resources") do |v|
     options[:res] = v
   end
 
