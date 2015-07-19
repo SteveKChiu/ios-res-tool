@@ -7,7 +7,8 @@
 # What it does is to read Andrord resources and translate it into iOS resources:
 #
 # + string, string-array and plurals are supported
-# + values-zh-rTW (or values-zh-rHK) will be translated into zh-Hant.lproj
+# + values-zh-rTW will be translated into zh-Hant.lproj
+# + values-zh-rHK will be translated into zh-Hant_HK.lproj
 # + values-zh-rCN will be translated into zh-Hans.lproj
 # + string format %s will be translated into %@
 # + string format %,d will be translated into %d
@@ -111,8 +112,7 @@ src_path.each_entry { |values_dir|
     if locale == 'zh-TW'
       locale = 'zh-Hant'
     elsif locale == 'zh-HK'
-      locale = 'zh-Hant'
-      next if $locales.key?(locale)
+      locale = 'zh-Hant_HK'
     elsif locale == 'zh-CN'
       locale = 'zh-Hans'
     end
@@ -350,6 +350,10 @@ def output_r_swift(dest_path, strings_keys, arrays_keys, plurals_keys)
       arrays_keys.each { |key|
         f.write "        case #{key}\n"
       }
+      f.write "\n"
+      f.write "        subscript(index: Int) -> String {\n"
+      f.write "            return R.arrays[self.rawValue]![index] as! String\n"
+      f.write "        }\n"
       f.write "    }\n\n"
       f.write "    private static var arrays: NSDictionary = {\n"
       f.write "        let path = NSBundle.mainBundle().pathForResource(\"LocalizableArray\", ofType: \"strings\")!\n"
@@ -359,12 +363,12 @@ def output_r_swift(dest_path, strings_keys, arrays_keys, plurals_keys)
 
     if not plurals_keys.empty?
       f.write "    enum plurals : String {\n"
-      arrays_keys.each { |key|
+      plurals_keys.each { |key|
         f.write "        case #{key}\n"
       }
       f.write "\n"
       f.write "        subscript(quantity: Int) -> String {\n"
-      f.write "            return String.localizedStringWithFormat(self.rawValue, quantity)\n"
+      f.write "            return String.localizedStringWithFormat(NSLocalizedString(self.rawValue, comment: \"\"), quantity)\n"
       f.write "        }\n"
       f.write "    }\n\n"
     end
@@ -372,18 +376,18 @@ def output_r_swift(dest_path, strings_keys, arrays_keys, plurals_keys)
     f.write "}\n\n"
 
     if not strings_keys.empty? or not arrays_keys.empty?
-      f.write "postfix operator % {}\n\n"
+      f.write "postfix operator ^ {}\n\n"
     end
 
     if not strings_keys.empty?
-      f.write "postfix func % (key: R.string) -> String {\n"
+      f.write "postfix func ^ (key: R.string) -> String {\n"
       f.write "    return NSLocalizedString(key.rawValue, comment: \"\")\n"
       f.write "}\n\n"
     end
 
     if not arrays_keys.empty?
-      f.write "postfix func % (key: R.array) -> [String] {\n"
-      f.write "    return R.arrays[key.rawValue] as! [String]\n"
+      f.write "postfix func ^ (key: R.array) -> [String] {\n"
+      f.write "    return R.arrays[key.rawValue]! as! [String]\n"
       f.write "}\n\n"
     end
   }

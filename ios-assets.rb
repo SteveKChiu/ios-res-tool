@@ -96,9 +96,9 @@ File.open(swift_path, 'wb') { |f|
   f.write "}\n\n"
 
   if not images_keys.empty?
-    f.write "postfix operator % {}\n\n"
+    f.write "postfix operator ^ {}\n\n"
 
-    f.write "postfix func % (key: R.image) -> UIImage {\n"
+    f.write "postfix func ^ (key: R.image) -> UIImage {\n"
     f.write "    return UIImage(named: key.rawValue)!\n"
     f.write "}\n\n"
   end

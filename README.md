@@ -116,16 +116,17 @@ struct R {
 }
 ````
 
-swift code              | swift type | Usage
+swift expression        | swift type | Usage
 ------------------------|------------|-------
 R.string.btn_ok         | R.string   | enum case, you can get the key string by .rawValue
-R.string.btn_ok%        | String     | To get the localized string
+R.string.btn_ok^        | String     | To get the localized string
 R.array.menu_list       | R.array    | enum case, you can get the key string by .rawValue
-R.array.menu_list%      | [String]   | To get the localized string array
+R.array.menu_list^      | [String]   | To get the localized string array
+R.array.menu_list[3]    | String     | To get 3rd item of the localized string array
 R.plurals.item_count    | R.plurals  | enum case, you can get the key string by .rawValue
 R.plurals.item_count[5] | String     | To get the localized string with quantity 5
 
-The % and [] operator for R.swift are overloaded to provide access to the strings.
+The ^ and [] operator for R.swift are overloaded to provide access to the strings.
 
 Generate CSV report
 -------------------
@@ -156,9 +157,9 @@ extension R {
 }
 ````
 
-swift code              | swift type | Usage
+swift expression        | swift type | Usage
 ------------------------|------------|-------
 R.image.icon_logo       | R.image    | enum case, you can get the key string by .rawValue
-R.image.icon_logo%      | UIImage    | To get the image from assets
+R.image.icon_logo^      | UIImage    | To get the image from assets
 
-The % operator for R+assets.swift are overloaded to provide access to the images.
+The postfix ^ operator for R+assets.swift are overloaded to provide access to the assets.
