@@ -1,10 +1,11 @@
-ios-resource-tool
-=================
+ios-res-tool
+============
 
-`ios-resource-tool` is a collection of ruby scripts to help you work with iOS resources:
+`ios-res-tool` is a collection of ruby scripts to help you work with iOS resources:
 
-+ Export Android `<string>`, `<string-array>`, `<plurals>` to iOS
-+ Generate CSV report if requested
++ Import from Android `<string>`, `<string-array>`, `<plurals>` resources
++ Export to CSV file
++ Re-import from previously exported CSV file
 + Generate R.swift to mimic Android R.java
 + Generate R+assets.swift to access .xcassets
 
@@ -24,6 +25,7 @@ they are more or less having some shortcomings, mostly:
 + no `<string-array>` support
 + no `<plurals>` support
 + no type-safe way to access resource for iOS development
++ no CSV import / export
 
 I want a tool to do these all, and can do it in batch, so I can put it into build script
 if needed. Thus why I write this script by myself.
@@ -43,8 +45,8 @@ For every language, Android side may have multiple .xml files, all will be merge
 single file on iOS. The iOS file will be put into proper language directory, such as Base.lproj,
 zh-Hant.lproj, etc...
 
-Import strings from Android
----------------------------
+Import from Android
+-------------------
 
 Take the following Android project for example:
 
@@ -74,7 +76,7 @@ And iOS project before running the tool:
 Then you can run the tool for ios_app:
 
 ````
-ruby ios-strings.rb --in=~/android_app/res --out=~/ios_app/res
+ruby ios-strings.rb --import=~/android_app/res --res=~/ios_app/res
 ````
 
 And the iOS project will look like
@@ -129,13 +131,22 @@ R.plurals.item_count[5] | String     | To get the localized string with quantity
 
 The ^ and [] operator for R.swift are overloaded to provide access to the strings.
 
-Generate CSV report
--------------------
+Export to CSV file
+------------------
 
 The `ios-strings.rb` can also export resources to one CSV file, for review or other purpose, please try:
 
 ````
-ruby ios-strings.rb --in=~/android_app/res --report=report.csv
+ruby ios-strings.rb --import=~/android_app/res --export-csv=report.csv
+````
+
+Re-import from CSV file
+-----------------------
+
+After you review the exported CSV file, you can re-import the file if you have make some modifications:
+
+````
+ruby ios-strings.rb --import-csv=report.csv --res=~/ios_app/res
 ````
 
 Type-safe access to assets
