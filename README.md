@@ -1,11 +1,12 @@
-ios-localize
-============
+ios-resource-tool
+=================
 
-`ios-strings.rb` is ruby script to help you to use Android resource on iOS, it does the following:
+`ios-resource-tool` is a collection of ruby scripts to help you work with iOS resources:
 
-+ Convert Android `<string>`, `<string-array>`, `<plurals>` to iOS
-+ Generate R.swift to mimic Android R.java
++ Export Android `<string>`, `<string-array>`, `<plurals>` to iOS
 + Generate CSV report if requested
++ Generate R.swift to mimic Android R.java
++ Generate R+assets.swift to access .xcassets
 
 Why use this tool?
 ------------------
