@@ -39,7 +39,7 @@ options = {}
 OptionParser.new do |opts|
   opts.banner = "Usage: ios-assets.rb [options]"
 
-  opts.on("--res=IOS_RES_DIR", "directory for iOS resources") do |v|
+  opts.on("--import=IOS_RES_DIR", "import from iOS resources") do |v|
     options[:res] = v
   end
 
