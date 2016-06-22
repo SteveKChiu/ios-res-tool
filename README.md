@@ -76,7 +76,7 @@ And iOS project before running the tool:
 Then you can run the tool for ios_app:
 
 ````
-ruby ios-strings.rb --import=~/android_app/res --res=~/ios_app/res
+ruby ios-strings.rb --import-android=~/android_app/res --export-ios=~/ios_app/res --export-swift
 ````
 
 And the iOS project will look like
@@ -137,7 +137,13 @@ Export to CSV file
 The `ios-strings.rb` can also export resources to one CSV file, for review or other purpose, please try:
 
 ````
-ruby ios-strings.rb --import=~/android_app/res --export-csv=report.csv
+ruby ios-strings.rb --import-ios=~/ios_app/res --export-csv=report.csv
+````
+
+Or directly from Android resources:
+
+````
+ruby ios-strings.rb --import-android=~/android_app/res --export-csv=report.csv
 ````
 
 Re-import from CSV file
@@ -146,7 +152,7 @@ Re-import from CSV file
 After you review the exported CSV file, you can re-import the file if you have make some modifications:
 
 ````
-ruby ios-strings.rb --import-csv=report.csv --res=~/ios_app/res
+ruby ios-strings.rb --import-csv=report.csv --export-ios=~/ios_app/res
 ````
 
 Type-safe access to assets
@@ -156,7 +162,7 @@ Another tool `ios-assets.rb` will generate `R+assets.swift` as extension to `R.s
 friendly access to the image assets. To run the tool:
 
 ````
-ruby ios-assets.rb --res=~/ios_app/res
+ruby ios-assets.rb --import=~/ios_app/res
 ````
 
 The generated R+assets.swift looks like:

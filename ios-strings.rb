@@ -45,42 +45,49 @@ require 'csv'
 ARGV << '--help' if ARGV.empty?
 
 options = {
-  :gen_r => true,
+  :copy_base => false,
   :import => [],
+  :export => [],
 }
 
-OptionParser.new do |opts|
+OptionParser.new { |opts|
   opts.banner = "Usage: ios-strings.rb [options]"
 
-  opts.on("--import=ANDROID_RES_DIR", "Import from Andrord resources directory") do |v|
-    options[:import] << { :type => 'android', :src => v }
-  end
+  opts.on("--import-android=DIR", "Import from Andrord resources directory") { |v|
+    options[:import] << { :type => 'android', :path => v }
+  }
 
-  opts.on("--import-csv=CSV_FILE", "Import from CSV file") do |v|
-    options[:import] << { :type => 'csv', :src => v }
-  end
+  opts.on("--import-ios=DIR", "Import from iOS resources directory") { |v|
+    options[:import] << { :type => 'ios', :path => v }
+    options[:ios_path] = v
+  }
 
-  opts.on("--res=IOS_RES_DIR", "iOS resources directory") do |v|
-    options[:res] = v
-  end
+  opts.on("--import-csv=FILE", "Import from CSV file") { |v|
+    options[:import] << { :type => 'csv', :path => v }
+  }
 
-  opts.on("--gen-base=LOCALE", "Generate a copy of base resource to locale") do |v|
-    options[:gen_base] = v
-  end
+  opts.on("--export-ios=DIR", "Export to iOS resources directory") { |v|
+    options[:export] << { :type => 'ios', :path => v }
+    options[:ios_path] = v
+  }
 
-  opts.on("--[no-]gen-R", "Whether to generate R.swift, default is true") do |v|
-    options[:gen_r] = v
-  end
+  opts.on("--export-csv=FILE", "Export to CSV file") { |v|
+    options[:export] << { :type => 'csv', :path => v }
+  }
 
-  opts.on("--export-csv=CSV_FILE", "Export to CSV file") do |v|
-    options[:export_csv] = v
-  end
+  opts.on("--export-swift", "Generate R.swift, require import or export iOS options") {
+    options[:export] << { :type => 'swift', :path => options[:ios_path] }
+  }
 
-  opts.on_tail("--help", "Show this message") do
+  opts.on("--copy-base=LOCALE", "Copy base resource to the specified locale") { |v|
+    options[:copy_base] = v
+  }
+
+  opts.on_tail("--help", "Show this message") {
     puts opts
     exit
-  end
-end.parse!
+  }
+}.parse!
 
 $locales = {}
 $strings_keys = {}
@@ -179,6 +186,95 @@ def import_android(import_path)
           $plurals_keys[key] = true
           values[:plurals][key] = plu_items
         end
+      }
+
+      if not values[:strings].empty? or not values[:arrays].empty? or not values[:plurals].empty?
+        map = $locales[locale]
+        if not map
+          $locales[locale] = values
+        else
+          map[:strings].merge!(values[:strings])
+          map[:arrays].merge!(values[:arrays])
+          map[:plurals].merge!(values[:plurals])
+        end
+      end
+    }
+  }
+end
+
+def parse_ios_token(line, sep)
+  n = 0
+  in_value = false
+  in_quote = false
+  in_escape = false
+  value = ""
+
+  for ch in line.chars
+     n += 1
+
+    if not in_value
+      if ch == "\""
+        in_quote = true
+        in_value = true
+      elsif ch != " " and ch != "\t" and ch != sep
+        in_value = true
+        value << ch
+      end
+      next
+    end
+
+    if in_escape
+      value << ch
+      in_escape = false
+    elsif ch == "\\"
+      in_escape = true
+    elsif in_quote
+      if ch == "\""
+        break
+      else
+        value << ch
+      end
+    else
+      if ch == " " or ch == "\t" or ch == sep
+        n -= 1
+        break
+      else
+        value << ch
+      end
+    end
+  end
+
+  return value, line[n..-1]
+end
+
+def import_ios(import_path)
+  Pathname.glob(import_path + '**/*.lproj/').each { |lproj_path|
+    name = lproj_path.basename.to_s
+    locale = name.gsub(/^(.+)\.lproj$/, '\1')
+
+    values = {
+      :strings => {},
+      :arrays => {},
+      :plurals => {},
+    }
+
+    Pathname.glob(lproj_path + '*.strings').each { |strings_path|
+      puts "strings: #{strings_path}"
+
+      IO.foreach(strings_path.to_s, mode: 'r:bom|utf-8') { |line|
+        line.strip!
+        next if line.start_with?('#')
+
+        key, line = parse_ios_token(line, "=")
+        line.strip!
+
+        next if not line.start_with?("=")
+        line.slice!(0)
+
+        value, line = parse_ios_token(line, ";")
+
+        $strings_keys[key] = true
+        values[:strings][key] = value
       }
 
       if not values[:strings].empty? or not values[:arrays].empty? or not values[:plurals].empty?
@@ -313,7 +409,7 @@ def export_ios_string(locale, str)
   return str
 end
 
-def export_resource(res_path, locale)
+def export_ios(res_path, locale)
   locale_path = res_path + "#{locale}.lproj"
   FileUtils.mkdir_p(locale_path) unless File.directory?(locale_path)
 
@@ -393,7 +489,7 @@ def export_resource(res_path, locale)
   end
 end
 
-def export_r_swift(res_path)
+def export_swift(res_path)
   swift_path = res_path + "R.swift"
   swift_path.delete if swift_path.exist?
 
@@ -550,13 +646,12 @@ def export_csv(csv_path)
 end
 
 import_list = options[:import]
-res_path = Pathname.new(File.expand_path(options[:res])) if options[:res]
-export_csv_path = Pathname.new(File.expand_path(options[:export_csv])) if options[:export_csv]
+export_list = options[:export]
 
 if not import_list.empty?
   import_list.each { |e|
     type = e[:type]
-    import_path = Pathname.new(File.expand_path(e[:src]))
+    import_path = Pathname.new(File.expand_path(e[:path]))
 
     unless import_path.exist?
       puts "Error! import directory not found: #{import_path}"
@@ -565,12 +660,14 @@ if not import_list.empty?
 
     if type == 'android'
       import_android(import_path)
+    elsif type == 'ios'
+      import_ios(import_path)
     elsif type == 'csv'
       import_csv(import_path)
     end
   }
 else
-  puts "Error! you have to use one of the --import options"
+  puts "Error! you have to use one of the import options"
   exit
 end
 
@@ -583,22 +680,26 @@ $strings_keys = $strings_keys.keys.sort
 $arrays_keys = $arrays_keys.keys.sort
 $plurals_keys = $plurals_keys.keys.sort
 
-if export_csv_path
-  export_csv(export_csv_path)
+if options[:copy_base]
+  $locales[options[:copy_base]] = $locales['Base']
 end
 
-if res_path
-  if not import_list.empty?
-    if options[:gen_base]
-      $locales[options[:gen_base]] = $locales['Base']
+if not export_list.empty?
+  export_list.each { |e|
+    type = e[:type]
+    export_path = Pathname.new(File.expand_path(e[:path]))
+
+    if type == 'ios'
+      $locales.keys.each { |locale|
+        export_ios(export_path, locale)
+      }
+    elsif type == 'swift'
+      export_swift(export_path)
+    elsif type == 'csv'
+      export_csv(export_path)
     end
-
-    $locales.keys.each { |locale|
-      export_resource(res_path, locale)
-    }
-  end
-
-  if options[:gen_r]
-    export_r_swift(res_path)
-  end
+  }
+else
+  puts "Error! you have to use one of the export options"
+  exit
 end
