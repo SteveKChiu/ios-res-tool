@@ -30,6 +30,21 @@ they are more or less having some shortcomings, mostly:
 I want a tool to do these all, and can do it in batch, so I can put it into build script
 if needed. Thus why I write this script by myself.
 
+Usage
+-----
+
+````
+Usage: ios-strings.rb [options]
+    --import-android=DIR         Import from Andrord resources directory
+    --import-ios=DIR             Import from iOS resources directory
+    --import-csv=FILE            Import from CSV file
+    --export-ios=DIR             Export to iOS resources directory
+    --export-csv=FILE            Export to CSV file
+    --export-swift               Generate R.swift, require import or export iOS options
+    --copy-base=LOCALE           Copy base resource to the specified locale
+    --help                       Show this message
+````
+
 Supported Android resource types
 --------------------------------
 
