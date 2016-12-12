@@ -516,12 +516,18 @@ def export_swift(res_path)
       }
       f.write "\n"
       f.write "        subscript(index: Int) -> String {\n"
-      f.write "            return R.arrays[self.rawValue]![index] as! String\n"
+      f.write "            return R.arrays[self.rawValue]![index]\n"
       f.write "        }\n"
       f.write "    }\n\n"
-      f.write "    private static var arrays: NSDictionary = {\n"
-      f.write "        let path = NSBundle.mainBundle().pathForResource(\"LocalizableArray\", ofType: \"strings\")!\n"
-      f.write "        return NSDictionary(contentsOfFile: path)!\n"
+      f.write "    fileprivate static var arrays: [String : [String]] = {\n"
+      f.write "        let path = Bundle.main.path(forResource: \"LocalizableArray\", ofType: \"strings\")!\n"
+      f.write "        let dict = NSDictionary(contentsOfFile: path)!\n"
+      f.write "        var map = [String : [String]]()\n"
+      f.write "        for (k, v) in dict {\n"
+      f.write "            let list = v as! [String]\n"
+      f.write "            map[k as! String] = list\n"
+      f.write "        }\n"
+      f.write "        return map\n"
       f.write "    }()\n\n"
     end
 
@@ -540,7 +546,7 @@ def export_swift(res_path)
     f.write "}\n\n"
 
     if not $strings_keys.empty? or not $arrays_keys.empty?
-      f.write "postfix operator ^ {}\n\n"
+      f.write "postfix operator ^\n\n"
     end
 
     if not $strings_keys.empty?
@@ -551,7 +557,7 @@ def export_swift(res_path)
 
     if not $arrays_keys.empty?
       f.write "postfix func ^ (key: R.array) -> [String] {\n"
-      f.write "    return R.arrays[key.rawValue]! as! [String]\n"
+      f.write "    return R.arrays[key.rawValue]!\n"
       f.write "}\n\n"
     end
   }

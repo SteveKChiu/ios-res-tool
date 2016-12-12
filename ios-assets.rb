@@ -128,7 +128,7 @@ File.open(swift_path, 'wb') { |f|
   f.write "}\n\n"
 
   if not imageset_keys.empty? or not spriteatlas_keys.empty? or not dataset_keys.empty?
-    f.write "postfix operator ^ {}\n\n"
+    f.write "postfix operator ^\n\n"
   end
 
   if not imageset_keys.empty?
