@@ -140,7 +140,7 @@ R.string.btn_ok         | R.string   | enum case, you can get the key string by 
 R.string.btn_ok^        | String     | To get the localized string
 R.array.menu_list       | R.array    | enum case, you can get the key string by .rawValue
 R.array.menu_list^      | [String]   | To get the localized string array
-R.array.menu_list[3]    | String     | To get 3rd item of the localized string array
+R.array.menu_list[2]    | String     | To get 3rd item of the localized string array (it's zero based index)
 R.plurals.item_count    | R.plurals  | enum case, you can get the key string by .rawValue
 R.plurals.item_count[5] | String     | To get the localized string with quantity 5
 
