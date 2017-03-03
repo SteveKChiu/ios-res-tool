@@ -395,12 +395,14 @@ def lookup_locales(locale, type, key)
 end
 
 def lookup_string_ref(locale, str)
+  old = str
   while str
     r = str.match(/^@string\/(.*)$/)
     break if not r
     str = lookup_locales(locale, :string, r[1])
   end
-  return str
+  return str if str
+  return old
 end
 
 def export_ios_string(locale, str)
