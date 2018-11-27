@@ -399,7 +399,7 @@ def lookup_string_ref(locale, str)
   while str
     r = str.match(/^@string\/(.*)$/)
     break if not r
-    str = lookup_locales(locale, :string, r[1])
+    str = lookup_locales(locale, :strings, r[1])
   end
   return str.clone if str
   return old.clone
