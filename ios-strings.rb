@@ -48,6 +48,7 @@ options = {
   :copy_base => false,
   :import => [],
   :export => [],
+  :skip_empty_files => true,
 }
 
 OptionParser.new { |opts|
@@ -82,6 +83,10 @@ OptionParser.new { |opts|
   opts.on("--copy-base=LOCALE", "Copy base resource to the specified locale") { |v|
     options[:copy_base] = v
   }
+  
+  opts.on("--skip-empty-files=STATE", "Whether empty files should be skipped. If true, they won't be exported. If false, the base language will be used to replace them. Currently, this refers only to the export of .strings files.") { |v|
+      options[:skip_empty_files] = v
+  }
 
   opts.on_tail("--help", "Show this message") {
     puts opts
@@ -93,6 +98,7 @@ $locales = {}
 $strings_keys = {}
 $arrays_keys = {}
 $plurals_keys = {}
+$skip_empty_files = options[:skip_empty_files]
 
 def import_android_string(str)
   str.gsub!(/^"(.*)"$/, '\1')
@@ -135,7 +141,7 @@ def import_android(import_path)
         next if str.attributes['translatable'] == 'false'
 
         key = str.attributes['name']
-        puts "string: #{key}"
+        # puts "string: #{key}"
 
         until not str.has_elements?
           str.each_element { |astr|
@@ -187,9 +193,9 @@ def import_android(import_path)
           values[:plurals][key] = plu_items
         end
       }
-
-      if not values[:strings].empty? or not values[:arrays].empty? or not values[:plurals].empty?
-        map = $locales[locale]
+       
+      if not values[:strings].empty? or not values[:arrays].empty? or not values[:plurals].empty? or not $skip_empty_files
+        map = $locales[locale] or not $skip_empty_files
         if not map
           $locales[locale] = values
         else
@@ -414,9 +420,10 @@ end
 
 def export_ios(res_path, locale)
   locale_path = res_path + "#{locale}.lproj"
+  puts "exporting #{locale}"
   FileUtils.mkdir_p(locale_path) unless File.directory?(locale_path)
 
-  if not $strings_keys.empty?
+  if not $strings_keys.empty? or not $skip_empty_files
     strings_path = locale_path + 'Localizable.strings'
     strings_path.delete if strings_path.exist?
 
