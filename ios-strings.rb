@@ -51,6 +51,15 @@ options = {
   :skip_empty_files => true,
 }
 
+# parse string argument to boolean
+def string_to_boolean(string)
+    case string
+        when /^(true|t|yes|y|1)$/i then true
+        when /^(false|f|no|n|0)$/i then false
+        else raise "Cannot convert string to boolean: #{string}"
+    end
+end
+
 OptionParser.new { |opts|
   opts.banner = "Usage: ios-strings.rb [options]"
 
@@ -85,7 +94,7 @@ OptionParser.new { |opts|
   }
   
   opts.on("--skip-empty-files=STATE", "Whether empty files should be skipped. If true, they won't be exported. If false, the base language will be used to replace them. Currently, this refers only to the export of .strings files.") { |v|
-      options[:skip_empty_files] = v
+      options[:skip_empty_files] = string_to_boolean(v)
   }
 
   opts.on_tail("--help", "Show this message") {
@@ -195,7 +204,7 @@ def import_android(import_path)
       }
        
       if not values[:strings].empty? or not values[:arrays].empty? or not values[:plurals].empty? or not $skip_empty_files
-        map = $locales[locale] or not $skip_empty_files
+        map = $locales[locale]
         if not map
           $locales[locale] = values
         else
@@ -420,7 +429,6 @@ end
 
 def export_ios(res_path, locale)
   locale_path = res_path + "#{locale}.lproj"
-  puts "exporting #{locale}"
   FileUtils.mkdir_p(locale_path) unless File.directory?(locale_path)
 
   if not $strings_keys.empty? or not $skip_empty_files
