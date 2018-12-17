@@ -49,6 +49,7 @@ options = {
   :import => [],
   :export => [],
   :skip_empty_files => true,
+  :skip_untranslatable_strings => true,
 }
 
 # parse string argument to boolean
@@ -96,6 +97,10 @@ OptionParser.new { |opts|
   opts.on("--skip-empty-files=STATE", "Whether empty files should be skipped. If true, they won't be exported. If false, the base language will be used to replace them. Currently, this refers only to the export of .strings files.") { |v|
       options[:skip_empty_files] = string_to_boolean(v)
   }
+  
+  opts.on("--skip-untranslatable-strings=STATE", "Whether strings which are marked as translatable=false should be skipped.") { |v|
+      options[:skip_untranslatable_strings] = string_to_boolean(v)
+  }
 
   opts.on_tail("--help", "Show this message") {
     puts opts
@@ -108,6 +113,7 @@ $strings_keys = {}
 $arrays_keys = {}
 $plurals_keys = {}
 $skip_empty_files = options[:skip_empty_files]
+$skip_untranslatable_strings = options[:skip_untranslatable_strings]
 
 def import_android_string(str)
   str.gsub!(/^"(.*)"$/, '\1')
@@ -147,7 +153,7 @@ def import_android(import_path)
       doc = REXML::Document.new(xml)
 
       doc.elements.each('resources/string') { |str|
-        next if str.attributes['translatable'] == 'false'
+        next if str.attributes['translatable'] == 'false' and $skip_untranslatable_strings
 
         key = str.attributes['name']
         # puts "string: #{key}"
@@ -164,7 +170,7 @@ def import_android(import_path)
       }
 
       doc.elements.each('resources/string-array') { |arr|
-        next if arr.attributes['translatable'] == 'false'
+        next if arr.attributes['translatable'] == 'false' and $skip_untranslatable_strings
 
         key = arr.attributes['name']
         puts "string-array: #{key}"
@@ -183,7 +189,7 @@ def import_android(import_path)
       }
 
       doc.elements.each('resources/plurals') { |plu|
-        next if plu.attributes['translatable'] == 'false'
+        next if plu.attributes['translatable'] == 'false' and $skip_untranslatable_strings
 
         key = plu.attributes['name']
         puts "plurals: #{key}"
