@@ -48,7 +48,18 @@ options = {
   :copy_base => false,
   :import => [],
   :export => [],
+  :skip_empty_files => true,
+  :skip_untranslatable_strings => true,
 }
+
+# parse string argument to boolean
+def string_to_boolean(string)
+    case string
+        when /^(true|t|yes|y|1)$/i then true
+        when /^(false|f|no|n|0)$/i then false
+        else raise "Cannot convert string to boolean: #{string}"
+    end
+end
 
 OptionParser.new { |opts|
   opts.banner = "Usage: ios-strings.rb [options]"
@@ -82,6 +93,14 @@ OptionParser.new { |opts|
   opts.on("--copy-base=LOCALE", "Copy base resource to the specified locale") { |v|
     options[:copy_base] = v
   }
+  
+  opts.on("--skip-empty-files=STATE", "Whether empty files should be skipped. If true, they won't be exported. If false, the base language will be used to replace them. Currently, this refers only to the export of .strings files.") { |v|
+      options[:skip_empty_files] = string_to_boolean(v)
+  }
+  
+  opts.on("--skip-untranslatable-strings=STATE", "Whether strings which are marked as translatable=false should be skipped.") { |v|
+      options[:skip_untranslatable_strings] = string_to_boolean(v)
+  }
 
   opts.on_tail("--help", "Show this message") {
     puts opts
@@ -93,6 +112,8 @@ $locales = {}
 $strings_keys = {}
 $arrays_keys = {}
 $plurals_keys = {}
+$skip_empty_files = options[:skip_empty_files]
+$skip_untranslatable_strings = options[:skip_untranslatable_strings]
 
 def import_android_string(str)
   str.gsub!(/^"(.*)"$/, '\1')
@@ -132,10 +153,10 @@ def import_android(import_path)
       doc = REXML::Document.new(xml)
 
       doc.elements.each('resources/string') { |str|
-        next if str.attributes['translatable'] == 'false'
+        next if str.attributes['translatable'] == 'false' and $skip_untranslatable_strings
 
         key = str.attributes['name']
-        puts "string: #{key}"
+        # puts "string: #{key}"
 
         until not str.has_elements?
           str.each_element { |astr|
@@ -149,7 +170,7 @@ def import_android(import_path)
       }
 
       doc.elements.each('resources/string-array') { |arr|
-        next if arr.attributes['translatable'] == 'false'
+        next if arr.attributes['translatable'] == 'false' and $skip_untranslatable_strings
 
         key = arr.attributes['name']
         puts "string-array: #{key}"
@@ -168,7 +189,7 @@ def import_android(import_path)
       }
 
       doc.elements.each('resources/plurals') { |plu|
-        next if plu.attributes['translatable'] == 'false'
+        next if plu.attributes['translatable'] == 'false' and $skip_untranslatable_strings
 
         key = plu.attributes['name']
         puts "plurals: #{key}"
@@ -187,8 +208,8 @@ def import_android(import_path)
           values[:plurals][key] = plu_items
         end
       }
-
-      if not values[:strings].empty? or not values[:arrays].empty? or not values[:plurals].empty?
+       
+      if not values[:strings].empty? or not values[:arrays].empty? or not values[:plurals].empty? or not $skip_empty_files
         map = $locales[locale]
         if not map
           $locales[locale] = values
@@ -401,8 +422,8 @@ def lookup_string_ref(locale, str)
     break if not r
     str = lookup_locales(locale, :strings, r[1])
   end
-  return str if str
-  return old
+  return str.clone if str
+  return old.clone
 end
 
 def export_ios_string(locale, str)
@@ -416,7 +437,7 @@ def export_ios(res_path, locale)
   locale_path = res_path + "#{locale}.lproj"
   FileUtils.mkdir_p(locale_path) unless File.directory?(locale_path)
 
-  if not $strings_keys.empty?
+  if not $strings_keys.empty? or not $skip_empty_files
     strings_path = locale_path + 'Localizable.strings'
     strings_path.delete if strings_path.exist?
 
