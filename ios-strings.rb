@@ -408,6 +408,7 @@ end
 def export_ios_string(locale, str)
   str = lookup_string_ref(locale, str)
   str.gsub!(/"/, '\\"')
+  str.gsub!(/\n/, "\\n")
   return str
 end
 
