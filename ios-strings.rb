@@ -116,6 +116,7 @@ $skip_empty_files = options[:skip_empty_files]
 $skip_untranslatable_strings = options[:skip_untranslatable_strings]
 
 def import_android_string(str)
+  str = str.clone
   str.gsub!(/^"(.*)"$/, '\1')
   str.gsub!(/(%(\d\$)?)s/, '\1@')
   str.gsub!(/(%(\d\$)?),d/, '\1d')
@@ -422,13 +423,14 @@ def lookup_string_ref(locale, str)
     break if not r
     str = lookup_locales(locale, :strings, r[1])
   end
-  return str.clone if str
-  return old.clone
+  return str if str
+  return old
 end
 
 def export_ios_string(locale, str)
-  str = lookup_string_ref(locale, str)
+  str = lookup_string_ref(locale, str).clone
   str.gsub!(/"/, '\\"')
+  str.gsub!(/\t/, "\\t")
   str.gsub!(/\n/, "\\n")
   return str
 end
@@ -588,9 +590,10 @@ def export_swift(res_path)
 end
 
 def export_csv_string(locale, str)
-  str = lookup_string_ref(locale, str)
+  str = lookup_string_ref(locale, str).clone
   str.gsub!(/^"(.*)"$/, '\1')
-  return '"' + str.gsub(/"/, '""') + '"'
+  str.gsub!(/"/, '""')
+  return '"' + str + '"'
 end
 
 def export_csv(csv_path)
