@@ -313,6 +313,10 @@ def import_ios(import_path)
   }
 end
 
+def import_csv_string(str)
+  return str.gsub(/\\"/, '"')
+end
+
 def import_csv(csv_path)
   is_first = true
   locales_keys = []
@@ -366,6 +370,8 @@ def import_csv(csv_path)
       values = $locales[locale][type]
       value = row[idx]
       next if not value
+
+      value = import_csv_string(value)
 
       if type == :strings
         values[key] = value
