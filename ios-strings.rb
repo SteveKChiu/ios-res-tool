@@ -4,7 +4,7 @@
 #
 # Copyright 2015, Steve K. Chiu <steve.k.chiu@gmail.com>
 #
-# What it does is to read Andrord resources and translate it into iOS resources:
+# What it does is to read Android resources and translate it into iOS resources:
 #
 # + string, string-array and plurals are supported
 # + values-zh-rTW will be translated into zh-Hant.lproj
@@ -64,7 +64,7 @@ end
 OptionParser.new { |opts|
   opts.banner = "Usage: ios-strings.rb [options]"
 
-  opts.on("--import-android=DIR", "Import from Andrord resources directory") { |v|
+  opts.on("--import-android=DIR", "Import from Android resources directory") { |v|
     options[:import] << { :type => 'android', :path => v }
   }
 
